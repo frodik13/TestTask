@@ -20,49 +20,20 @@ namespace TestTask
         private static int number = 1; 
 
         /// <summary>
-        /// Час старта гонки.
+        /// Стартовое время. Задается [0] - часы, [1] - минуты, [2] - секунды.
         /// </summary>
-        public byte StartHour { get; set; }
-        
-        /// <summary>
-        /// Минута старта гонки.
-        /// </summary>
-        public byte StartMinute { get; set; }
-        
-        /// <summary>
-        /// Секунда старта гонки.
-        /// </summary>
-        public byte StartSecond { get; set; }
-        
-        /// <summary>
-        /// Час финиша гонки.
-        /// </summary>
-        public byte EndHour { get; set; }
+        public byte[] StartTime { get; set; }
 
         /// <summary>
-        /// Минута финиша гонки.
+        /// Финишное время. Задается [0] - часы, [1] - минуты, [2] - секунды.
         /// </summary>
-        public byte EndMinute { get; set; }
-        
-        /// <summary>
-        /// Секунда финиша гонки.
-        /// </summary>
-        public byte EndSecond { get; set; }
+        public byte[] FinishTime { get; set; }
 
         /// <summary>
-        /// Результат гонки. Час.
+        /// Результат гонки. Задается [0] - часы, [1] - минуты, [2] - секунды.
         /// </summary>
-        public byte ResultHour { get; private set; }
-        
-        /// <summary>
-        /// Результат гонки. Минута.
-        /// </summary>
-        public byte ResultMinute { get; private set; }
-        
-        /// <summary>
-        /// Результат гонки. Секунда.
-        /// </summary>
-        public byte ResultSecond { get; private set; }
+        public byte[] ResultTime { get; private set; }
+
         #endregion
 
         #region Конструктор
@@ -84,12 +55,8 @@ namespace TestTask
                 name = "Anonymous Skier № " + number;
 
             Name = name;
-            StartHour = startHour;
-            StartMinute = startMinute;
-            StartSecond = startSecond;
-            EndHour = endHour;
-            EndMinute = endMinute;
-            EndSecond = endSecond;
+            StartTime = new byte[3] { startHour, startMinute, startSecond };
+            FinishTime = new byte[3] { endHour, endMinute, endSecond };
             number++;
         }
         #endregion
@@ -102,7 +69,7 @@ namespace TestTask
         /// <param name="minute">Минуты</param>
         /// <param name="second">Секунды</param>
         /// <returns>Общее количество секунд.</returns>
-        private long ToSecond(byte hour, byte minute, byte second)
+        private int InSeconds(byte hour, byte minute, byte second)
         {
             return hour * 3600 + minute * 60 + second;
         }
@@ -110,16 +77,20 @@ namespace TestTask
         /// <summary>
         /// Приведение из секунд в часы, минуты и секунды.
         /// </summary>
-        /// <param name="second">Количество секунд</param>
-        private void ToResult(long second)
+        /// <param name="seconds">Количество секунд</param>
+        private byte[] FromSeconds(int seconds)
         {
-            ResultHour = (byte) (second / 3600);
-            second -= ResultHour * 3600;
+            byte[] result = new byte[3];
 
-            ResultMinute = (byte) (second / 60);
-            second -= ResultMinute * 60;
+            result[0] = (byte) (seconds / 3600);
+            seconds -= result[0] * 3600;
 
-            ResultSecond = (byte) second;
+            result[1] = (byte) (seconds / 60);
+            seconds -= result[1] * 60;
+
+            result[2] = (byte) seconds;
+
+            return result;
         }
 
         /// <summary>
@@ -128,17 +99,18 @@ namespace TestTask
         public void Result()
         {
             // Если гонка проходила в полночь, нужно добавить 24 часа для правильного подсчета времени.
-            byte endHour = (byte)(StartHour > EndHour ? EndHour + 24 : EndHour); 
+            byte finishHour = (byte)(StartTime[0] > FinishTime[0] ? FinishTime[0] + 24 : FinishTime[0]); 
 
-            Console.WriteLine($"Лыжник {Name} стартовал в {StartHour}:{StartMinute}:{StartSecond}");
-            Console.WriteLine($"Финишировал в {EndHour}:{EndMinute}:{EndSecond}");
-            long startTime = ToSecond(StartHour, StartMinute, StartSecond);
-            long endTime = ToSecond(endHour, EndMinute, EndSecond);
+            Console.WriteLine($"Лыжник {Name} стартовал в {string.Join(":", StartTime)}");
+            Console.WriteLine($"Финишировал в {string.Join(":", FinishTime)}");
 
-            long result = endTime - startTime;
-            ToResult(result);
+            int startTime = InSeconds(StartTime[0], StartTime[1], StartTime[2]);
+            int endTime = InSeconds(finishHour, FinishTime[1], FinishTime[2]);
 
-            Console.WriteLine($"Итоговое время: {ResultHour}:{ResultMinute}:{ResultSecond}");
+            int result = endTime - startTime;
+            ResultTime = FromSeconds(result);
+
+            Console.WriteLine($"Итоговое время: {string.Join(":", ResultTime)}");
         }
         #endregion
     }
